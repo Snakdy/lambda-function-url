@@ -1,4 +1,4 @@
-module github.com/snakdy/lambda-function-url
+module github.com/Snakdy/lambda-function-url
 
 go 1.22
 

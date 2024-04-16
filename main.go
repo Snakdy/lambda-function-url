@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/Snakdy/lambda-function-url/pkg/invoke"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lpar/problem"
-	"github.com/snakdy/lambda-function-url/pkg/invoke"
 	"golang.org/x/exp/slog"
 	"io"
 	"net/http"
