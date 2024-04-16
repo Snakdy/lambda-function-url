@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lpar/problem"
 	"github.com/snakdy/lambda-function-url/pkg/invoke"
@@ -10,28 +11,43 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"time"
 )
 
 type environment struct {
 	Port     int    `envconfig:"PORT" default:"8080"`
 	Upstream string `required:"true"`
-	Timeout int64 `default:"30"`
+	Timeout  int64  `default:"30"`
 }
 
 func main() {
 	var e environment
 	envconfig.MustProcess("app", &e)
-	
-	rpcClient, err := rpc.Dial("tcp", e.Upstream)
+
+	var client *rpc.Client
+	var err error
+
+	// connect to the upstream function.
+	// We might start before it, so we need retry-backoff
+	// logic
+	err = backoff.Retry(func() error {
+		slog.Info("connecting to function", "address", e.Upstream)
+		client, err = rpc.Dial("tcp", e.Upstream)
+		if err != nil {
+			slog.Error("failed to connect to upstream", "error", err)
+			return err
+		}
+		return nil
+	}, backoff.NewExponentialBackOff(backoff.WithInitialInterval(time.Second)))
 	if err != nil {
-		slog.Error("failed to connect to upstream", "error", err)
+		slog.Error("could not connect to upstream after all retries")
 		os.Exit(1)
 	}
 
-	svc := invoke.NewService(rpcClient, e.Timeout)
-	
+	svc := invoke.NewService(client, e.Timeout)
+
 	r := http.NewServeMux()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("POST /", func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			_ = problem.MustWrite(w, problem.New(http.StatusBadRequest).WithErr(err))
@@ -48,6 +64,6 @@ func main() {
 		}
 		_, _ = w.Write(resp)
 	})
-	
+
 	slog.Error("server exited", "error", http.ListenAndServe(fmt.Sprintf(":%d", e.Port), r))
 }

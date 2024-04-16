@@ -1,6 +1,6 @@
 module github.com/snakdy/lambda-function-url
 
-go 1.19
+go 1.22
 
 require (
 	github.com/aws/aws-lambda-go v1.46.0
@@ -9,3 +9,5 @@ require (
 )
 
 require github.com/lpar/problem v0.0.0-20200522200938-32704d5be676
+
+require github.com/cenkalti/backoff/v4 v4.3.0
