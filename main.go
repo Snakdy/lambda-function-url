@@ -16,8 +16,8 @@ import (
 
 type environment struct {
 	Port     int    `envconfig:"PORT" default:"8080"`
-	Upstream string `required:"true"`
-	Timeout  int64  `default:"30"`
+	Upstream string `split_words:"true" required:"true"`
+	Timeout  int64  `split_words:"true" default:"30"`
 }
 
 func main() {
