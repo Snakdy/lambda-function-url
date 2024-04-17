@@ -7,7 +7,14 @@ This project provides a way of emulating a Lambda Function URL outside of AWS.
 ### Running the Lambda
 
 Start your Lambda in your favourite execution engine (e.g., Kubernetes).
-Make sure to set the `AWS_LAMBDA_RUNTIME_API` and `_LAMBDA_SERVER_ROOT` environment variables.
+Make sure to set the `AWS_LAMBDA_RUNTIME_API` and `_LAMBDA_SERVER_PORT` environment variables:
+
+```shell
+# tcp address that the lambda is running on
+export AWS_LAMBDA_RUNTIME_API=localhost
+# port that the lambda is running on
+export _LAMBDA_SERVER_PORT=8080
+```
 
 ### Running the gateway
 
